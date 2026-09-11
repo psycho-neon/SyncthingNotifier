@@ -105,13 +105,14 @@ internal sealed class SyncMonitor : IDisposable
 
         if (string.Equals(syncEvent.Type, "StateChanged", StringComparison.Ordinal))
         {
-            if (string.Equals(syncEvent.State, "idle", StringComparison.OrdinalIgnoreCase))
-            {
-                await NotifyIfCompleteAsync(folderId, configuration, client, cancellationToken);
-            }
-            else
+            if (string.Equals(syncEvent.State, "syncing", StringComparison.OrdinalIgnoreCase))
             {
                 _pendingFolders.Add(folderId);
+            }
+            else if (string.Equals(syncEvent.State, "idle", StringComparison.OrdinalIgnoreCase) &&
+                     _pendingFolders.Contains(folderId))
+            {
+                await NotifyIfCompleteAsync(folderId, configuration, client, cancellationToken);
             }
 
             return;
